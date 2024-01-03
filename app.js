@@ -16,10 +16,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 const dbConfig = {
-  host: "localhost",
-  user: "root",
-  password: "BismillahKaya123",
-  database: "cms",
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
 };
 
 const pool = mysql.createPool(dbConfig); // Use createPool for better performance
