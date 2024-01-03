@@ -8,7 +8,7 @@ require("dotenv").config(); // Load environment variables from .env file
 const app = express();
 
 const corsOptions = {
-  origin: "https://klinikkartika.up.railway.app",
+  origin: "*",
   credentials: true,
   exposedHeaders: ["Set-Cookie"],
 };
@@ -61,12 +61,6 @@ app.use(
 app.options("*", (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://klinikkartika.up.railway.app"
-  );
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
   res.status(200).end();
 });
 
