@@ -8,7 +8,7 @@ const app = express();
 
 // Set up CORS middleware
 const corsOptions = {
-  origin: "http://localhost:3000", // Replace with the actual origin of your frontend
+  origin: "*", // Replace with the actual origin of your frontend
   credentials: true,
   exposedHeaders: ["Set-Cookie"],
 };
