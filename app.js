@@ -97,6 +97,15 @@ app.post("/login", async (req, res) => {
 
     console.log("Login successful:", req.session.user);
 
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "https://klinikkartika.up.railway.app"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,HEAD,PUT,PATCH,POST,DELETE"
+    );
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.json({
       success: true,
       user: { id: user.id, username: user.username, role: user.role },
