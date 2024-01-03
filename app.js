@@ -2,25 +2,8 @@ const express = require("express");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 const mysql = require("mysql2/promise"); // Use mysql2/promise for better async support
-const cors = require("cors");
 
 const app = express();
-
-// Set up CORS middleware
-const corsOptions = {
-  origin: "https://klinikkartika.up.railway.app", // Replace with the actual origin of your frontend
-  credentials: true,
-  exposedHeaders: ["Set-Cookie"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
-app.options("/login", cors(corsOptions), (req, res) => {
-  res.setHeader("Access-Control-Allow-Methods", "POST");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.status(204).end();
-});
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
@@ -54,24 +37,7 @@ app.use(
   })
 );
 
-// CORS preflight handling
-app.options("*", (req, res) => {
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.status(200).end();
-});
-
 app.use(express.json());
-
-// Additional CORS headers
-app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://klinikkartika.up.railway.app"
-  );
-  res.header("Access-Control-Allow-Credentials", true);
-  next();
-});
 
 app.post("/login", async (req, res) => {
   console.log("Payload:", req.body);
