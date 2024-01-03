@@ -1,9 +1,19 @@
 const express = require("express");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
-const mysql = require("mysql2/promise"); // Use mysql2/promise for better async support
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+require("dotenv").config(); // Load environment variables from .env file
 
 const app = express();
+
+const corsOptions = {
+  origin: "https://klinikkartika.up.railway.app",
+  credentials: true,
+  exposedHeaders: ["Set-Cookie"],
+};
+
+app.use(cors(corsOptions));
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
@@ -12,15 +22,26 @@ const dbConfig = {
   database: process.env.MYSQLDATABASE,
 };
 
-const pool = mysql.createPool(dbConfig); // Use createPool for better performance
+const pool = mysql.createPool({
+  host: dbConfig.host,
+  user: dbConfig.user,
+  password: dbConfig.password,
+  database: dbConfig.database,
+});
+
 const createConnection = async () => {
-  return await mysql.createConnection(dbConfig);
+  return await mysql.createConnection({
+    host: dbConfig.host,
+    user: dbConfig.user,
+    password: dbConfig.password,
+    database: dbConfig.database,
+  });
 };
 
 const sessionStore = new MySQLStore(
   {
     ...dbConfig,
-    clearExpired: true, // Automatically clear expired sessions
+    clearExpired: true,
   },
   pool
 );
@@ -36,6 +57,12 @@ app.use(
     },
   })
 );
+
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.status(200).end();
+});
 
 app.use(express.json());
 
@@ -97,15 +124,6 @@ app.post("/login", async (req, res) => {
 
     console.log("Login successful:", req.session.user);
 
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      "https://klinikkartika.up.railway.app"
-    );
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET,HEAD,PUT,PATCH,POST,DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.json({
       success: true,
       user: { id: user.id, username: user.username, role: user.role },
