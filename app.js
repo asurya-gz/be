@@ -47,11 +47,18 @@ app.use(
   })
 );
 
-// CORS preflight handling
-app.options("*", (req, res) => {
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.status(200).end();
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  // Sidebar active
+  res.locals.activeMenu = req.path;
+
+  next();
 });
 
 app.use(express.json());
