@@ -56,6 +56,16 @@ app.options("*", (req, res) => {
 
 app.use(express.json());
 
+// Additional CORS headers
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://klinikkartika.up.railway.app"
+  );
+  res.header("Access-Control-Allow-Credentials", true);
+  next();
+});
+
 app.post("/login", async (req, res) => {
   console.log("Payload:", req.body);
   const { username, password } = req.body;
