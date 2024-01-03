@@ -2,6 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 const mysql = require("mysql2/promise");
+const cors = require("cors");
 
 const app = express();
 
@@ -34,6 +35,14 @@ app.use(
     cookie: {
       maxAge: 3600000,
     },
+  })
+);
+
+// Use cors middleware
+app.use(
+  cors({
+    origin: "https://klinikkartika.up.railway.app", // Replace with your frontend URL
+    credentials: true,
   })
 );
 
