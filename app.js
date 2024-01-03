@@ -43,6 +43,8 @@ app.use(
   cors({
     origin: "https://klinikkartika.up.railway.app", // Replace with your frontend URL
     credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Add the appropriate methods
+    optionsSuccessStatus: 204,
   })
 );
 
