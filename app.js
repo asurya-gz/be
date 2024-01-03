@@ -7,13 +7,13 @@ const cors = require("cors");
 const app = express();
 
 // Set up CORS middleware
-const corsOptions = {
-  origin: "*", // Replace with the actual origin of your frontend
-  credentials: true,
-  exposedHeaders: ["Set-Cookie"],
-};
+// const corsOptions = {
+//   origin: "*", // Replace with the actual origin of your frontend
+//   credentials: true,
+//   exposedHeaders: ["Set-Cookie"],
+// };
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
