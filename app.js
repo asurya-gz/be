@@ -7,13 +7,13 @@ require("dotenv").config(); // Load environment variables from .env file
 
 const app = express();
 
-const corsOptions = {
-  origin: "*",
-  credentials: true,
-  exposedHeaders: ["Set-Cookie"],
-};
+// const corsOptions = {
+//   origin: "*",
+//   credentials: true,
+//   exposedHeaders: ["Set-Cookie"],
+// };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
@@ -58,11 +58,11 @@ app.use(
   })
 );
 
-app.options("*", (req, res) => {
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.status(200).end();
-});
+// app.options("*", (req, res) => {
+//   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//   res.status(200).end();
+// });
 
 app.use(express.json());
 
