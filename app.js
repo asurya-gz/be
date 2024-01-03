@@ -1,19 +1,9 @@
 const express = require("express");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
-const mysql = require("mysql2/promise"); // Use mysql2/promise for better async support
-const cors = require("cors");
+const mysql = require("mysql2/promise");
 
 const app = express();
-
-// Set up CORS middleware
-// const corsOptions = {
-//   origin: "*", // Replace with the actual origin of your frontend
-//   credentials: true,
-//   exposedHeaders: ["Set-Cookie"],
-// };
-
-// app.use(cors(corsOptions));
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
@@ -22,7 +12,7 @@ const dbConfig = {
   database: process.env.MYSQLDATABASE,
 };
 
-const pool = mysql.createPool(dbConfig); // Use createPool for better performance
+const pool = mysql.createPool(dbConfig);
 const createConnection = async () => {
   return await mysql.createConnection(dbConfig);
 };
@@ -30,7 +20,7 @@ const createConnection = async () => {
 const sessionStore = new MySQLStore(
   {
     ...dbConfig,
-    clearExpired: true, // Automatically clear expired sessions
+    clearExpired: true,
   },
   pool
 );
@@ -46,20 +36,6 @@ app.use(
     },
   })
 );
-
-app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://klinikkartika.up.railway.app"
-  ); // Replace with your actual frontend URL
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Credentials", "true"); // Add this line
-  next();
-});
 
 app.use(express.json());
 
