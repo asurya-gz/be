@@ -13,7 +13,7 @@ const app = express();
 //   exposedHeaders: ["Set-Cookie"],
 // };
 
-app.use(cors());
+// app.use(cors());
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
