@@ -8,7 +8,7 @@ require("dotenv").config(); // Load environment variables from .env file
 const app = express();
 
 const corsOptions = {
-  origin: "*",
+  origin: "https://klinikkartika.up.railway.app",
   credentials: true,
   exposedHeaders: ["Set-Cookie"],
 };
