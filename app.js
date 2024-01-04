@@ -8,18 +8,19 @@ require("dotenv").config(); // Load environment variables from .env file
 const app = express();
 
 // const corsOptions = {
-//   origin: "*",
+//   origin: "http://localhost:3000",
 //   credentials: true,
 //   exposedHeaders: ["Set-Cookie"],
 // };
 
-// app.use(cors());
+// app.use(cors(corsOptions));
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
 };
 
 const pool = mysql.createPool({
@@ -27,6 +28,10 @@ const pool = mysql.createPool({
   user: dbConfig.user,
   password: dbConfig.password,
   database: dbConfig.database,
+  port: dbConfig.port,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
 const createConnection = async () => {
@@ -35,6 +40,7 @@ const createConnection = async () => {
     user: dbConfig.user,
     password: dbConfig.password,
     database: dbConfig.database,
+    port: dbConfig.port,
   });
 };
 
@@ -58,11 +64,11 @@ app.use(
   })
 );
 
-// app.options("*", (req, res) => {
-//   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-//   res.status(200).end();
-// });
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.status(200).end();
+});
 
 app.use(express.json());
 
