@@ -7,13 +7,13 @@ require("dotenv").config(); // Load environment variables from .env file
 
 const app = express();
 
-// const corsOptions = {
-//   origin: "http://localhost:3000",
-//   credentials: true,
-//   exposedHeaders: ["Set-Cookie"],
-// };
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  exposedHeaders: ["Set-Cookie"],
+};
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 const dbConfig = {
   host: process.env.MYSQLHOST,
@@ -52,6 +52,17 @@ const sessionStore = new MySQLStore(
   pool
 );
 
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader(
+//     "Access-Control-Allow-Methods",
+//     "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+//   );
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+//   next();
+// });
+
 app.use(
   session({
     secret: "session",
@@ -69,17 +80,6 @@ app.use(
 //   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 //   res.status(200).end();
 // });
-
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  next();
-});
 
 app.use(express.json());
 
