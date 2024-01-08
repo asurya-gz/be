@@ -152,6 +152,38 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Endpoint to fetch obat data with optional filter by jenis
+app.get("/obat", async (req, res) => {
+  try {
+    const { jenis } = req.query; // Get the jenis parameter from the query
+
+    let query = "SELECT * FROM obat";
+    let queryParams = [];
+
+    // Check if jenis parameter is provided
+    if (jenis) {
+      query += " WHERE jenis = ?";
+      queryParams = [jenis];
+    }
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query, queryParams);
+      res.json({ success: true, obat: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /obat endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+
 // Endpoint to fetch user data
 app.get("/user", (req, res) => {
   // Check if the user is logged in
