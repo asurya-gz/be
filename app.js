@@ -152,6 +152,450 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Endpoint to fetch apoteker data based on username
+app.get("/apoteker", async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username is required" });
+    }
+
+    const [results] = await pool.query(
+      "SELECT id, username, role, nama, no_telp, alamat FROM apoteker WHERE username = ?",
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Apoteker not found" });
+    }
+
+    const apotekerData = results[0];
+    res.json({ success: true, apoteker: apotekerData });
+  } catch (error) {
+    console.error("Error fetching apoteker data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/apoteker/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedApotekerData = req.body;
+
+    // Log incoming data for debugging
+    console.log("Incoming apoteker update data:", updatedApotekerData);
+
+    const [results] = await pool.query("UPDATE apoteker SET ? WHERE id = ?", [
+      updatedApotekerData,
+      id,
+    ]);
+
+    // Check if the update was successful
+    if (results.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Apoteker not found" });
+    }
+
+    res.json({ success: true, message: "Apoteker data updated successfully" });
+  } catch (error) {
+    console.error("Error updating apoteker data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/apoteker/change-password/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const [results] = await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [newPassword, id]
+    );
+
+    if (results.affectedRows === 1) {
+      res.json({ success: true, message: "Password updated successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (err) {
+    console.error("Error updating password:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint untuk mendapatkan data dokter berdasarkan username
+app.get("/dokter", async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username is required" });
+    }
+
+    const [results] = await pool.query(
+      "SELECT id, username, role, nama, no_telp, alamat FROM dokter WHERE username = ?",
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Dokter not found" });
+    }
+
+    const dokterData = results[0];
+    res.json({ success: true, dokter: dokterData });
+  } catch (error) {
+    console.error("Error fetching dokter data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/dokter/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedDokterData = req.body;
+
+    // Log incoming data for debugging
+    console.log("Incoming dokter update data:", updatedDokterData);
+
+    const [results] = await pool.query("UPDATE dokter SET ? WHERE id = ?", [
+      updatedDokterData,
+      id,
+    ]);
+
+    // Check if the update was successful
+    if (results.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Dokter not found" });
+    }
+
+    res.json({ success: true, message: "Dokter data updated successfully" });
+  } catch (error) {
+    console.error("Error updating dokter data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/dokter/change-password/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const [results] = await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [newPassword, id]
+    );
+
+    if (results.affectedRows === 1) {
+      res.json({ success: true, message: "Password updated successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (err) {
+    console.error("Error updating password:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint untuk mendapatkan data perawat berdasarkan username
+app.get("/perawat", async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username is required" });
+    }
+
+    const [results] = await pool.query(
+      "SELECT id, username, role, nama, no_telp, alamat FROM perawat WHERE username = ?",
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Perawat not found" });
+    }
+
+    const perawatData = results[0];
+    res.json({ success: true, perawat: perawatData });
+  } catch (error) {
+    console.error("Error fetching perawat data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/perawat/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedPerawatData = req.body;
+
+    // Log incoming data for debugging
+    console.log("Incoming perawat update data:", updatedPerawatData);
+
+    const [results] = await pool.query("UPDATE perawat SET ? WHERE id = ?", [
+      updatedPerawatData,
+      id,
+    ]);
+
+    // Check if the update was successful
+    if (results.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Perawat not found" });
+    }
+
+    res.json({ success: true, message: "Perawat data updated successfully" });
+  } catch (error) {
+    console.error("Error updating perawat data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/perawat/change-password/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const [results] = await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [newPassword, id]
+    );
+
+    if (results.affectedRows === 1) {
+      res.json({ success: true, message: "Password updated successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (err) {
+    console.error("Error updating password:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint untuk mendapatkan data pemilik berdasarkan username
+app.get("/pemilik", async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username is required" });
+    }
+
+    const [results] = await pool.query(
+      "SELECT id, username, role, nama, no_telp, alamat FROM pemilik WHERE username = ?",
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Pemilik not found" });
+    }
+
+    const pemilikData = results[0];
+    res.json({ success: true, pemilik: pemilikData });
+  } catch (error) {
+    console.error("Error fetching pemilik data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Update Pemilik Data
+app.put("/pemilik/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedPemilikData = req.body;
+
+    // Log incoming data for debugging
+    console.log("Incoming pemilik update data:", updatedPemilikData);
+
+    const [results] = await pool.query("UPDATE pemilik SET ? WHERE id = ?", [
+      updatedPemilikData,
+      id,
+    ]);
+
+    // Check if the update was successful
+    if (results.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Pemilik not found" });
+    }
+
+    // Fetch the updated pemilik data from the database
+    const [updatedPemilik] = await pool.query(
+      "SELECT * FROM pemilik WHERE id = ?",
+      [id]
+    );
+
+    res.json({
+      success: true,
+      message: "Pemilik data updated successfully",
+      pemilik: updatedPemilik[0],
+    });
+  } catch (error) {
+    console.error("Error updating pemilik data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/pemilik/change-password/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const [results] = await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [newPassword, id]
+    );
+
+    if (results.affectedRows === 1) {
+      res.json({ success: true, message: "Password updated successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (err) {
+    console.error("Error updating password:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint to fetch admin data based on username
+app.get("/admin", async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username is required" });
+    }
+
+    const [results] = await pool.query(
+      "SELECT id, username, role, nama, no_telp, alamat FROM admin WHERE username = ?",
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+
+    const adminData = results[0];
+    res.json({ success: true, admin: adminData });
+  } catch (error) {
+    console.error("Error fetching admin data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to update admin data
+app.put("/admin/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedAdminData = req.body;
+
+    // Log incoming data for debugging
+    console.log("Incoming admin update data:", updatedAdminData);
+
+    const [results] = await pool.query("UPDATE admin SET ? WHERE id = ?", [
+      updatedAdminData,
+      id,
+    ]);
+
+    // Check if the update was successful
+    if (results.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+
+    res.json({ success: true, message: "Admin data updated successfully" });
+  } catch (error) {
+    console.error("Error updating admin data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/admin/change-password/:id", async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    const [results] = await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [newPassword, id]
+    );
+
+    if (results.affectedRows === 1) {
+      res.json({ success: true, message: "Password updated successfully." });
+    } else {
+      res.status(404).json({ success: false, message: "User not found." });
+    }
+  } catch (err) {
+    console.error("Error updating password:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/tambahuser", async (req, res) => {
+  const { username, role } = req.body;
+
+  if (!username || !role) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Username and role are required." });
+  }
+
+  try {
+    const password = "password";
+
+    const [result] = await pool.query(
+      "INSERT INTO users (username, role, password) VALUES (?, ?, ?)",
+      [username, role, password]
+    );
+
+    const [newUser] = await pool.query("SELECT * FROM users WHERE id = ?", [
+      result.insertId,
+    ]);
+
+    res.status(201).json({ success: true, user: newUser[0] });
+  } catch (error) {
+    console.error("Error adding user:", error.message);
+    res.status(500).json({ success: false, error: error.message }); // Send detailed error message in the response
+  }
+});
+
+app.get("/users/:role", async (req, res) => {
+  const role = req.params.role;
+
+  try {
+    const [results] = await pool.query("SELECT * FROM users WHERE role = ?", [
+      role,
+    ]);
+    res.json({ success: true, users: results });
+  } catch (error) {
+    console.error("Error fetching users by role:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
 // Endpoint to fetch obat data with optional filter by jenis
 app.get("/obat", async (req, res) => {
   try {
@@ -183,7 +627,6 @@ app.get("/obat", async (req, res) => {
   }
 });
 
-
 // Endpoint to fetch user data
 app.get("/user", (req, res) => {
   // Check if the user is logged in
@@ -195,6 +638,84 @@ app.get("/user", (req, res) => {
   const user = req.session.user;
   console.log("Session data:", req.session);
   res.json({ success: true, user });
+});
+
+// Endpoint to get users
+app.get("/users", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [results] = await connection.query("SELECT * FROM users");
+      res.json({ success: true, users: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /users endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to get all data from detail_transaksi with obat details
+app.get("/detail_transaksi", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const query = `
+        SELECT dt.*, o.nama_obat
+        FROM detail_transaksi dt
+        LEFT JOIN obat o ON dt.obat_id = o.id
+      `;
+      const [results] = await connection.query(query);
+      res.json({ success: true, detail_transaksi: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /detail_transaksi endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to delete a user
+app.delete("/users/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      // Check if the user exists
+      const [checkResults] = await connection.query(
+        "SELECT * FROM users WHERE id = ?",
+        [userId]
+      );
+
+      if (checkResults.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, error: "User not found" });
+      }
+
+      // Delete the user
+      await connection.query("DELETE FROM users WHERE id = ?", [userId]);
+
+      res.json({ success: true, message: "User deleted successfully" });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /users/:userId endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
 });
 
 app.post("/logout", (req, res) => {
@@ -215,6 +736,65 @@ app.post("/logout", (req, res) => {
     });
   } else {
     return res.status(401).json({ success: false, message: "Not logged in" });
+  }
+});
+
+// Endpoint untuk mereset password
+app.put("/users/reset-password/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      // Reset password to "password"
+      await connection.query(
+        "UPDATE users SET password = 'password' WHERE id = ?",
+        [userId]
+      );
+
+      res.json({ success: true, message: "Password reset successfully" });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error(
+      "Error in /users/reset-password/:userId endpoint:",
+      error.message
+    );
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.put("/users/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { username, role } = req.body;
+
+  try {
+    if (!username || !role) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Username and role are required" });
+    }
+
+    const updateQuery = "UPDATE users SET username = ?, role = ? WHERE id = ?";
+    const values = [username, role, userId];
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.query(updateQuery, values);
+      res.json({ success: true, message: "User updated successfully" });
+    } catch (queryError) {
+      console.error("Error executing update query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error updating user:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
