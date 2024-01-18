@@ -1029,6 +1029,122 @@ app.post("/detail_transaksi", async (req, res) => {
   }
 });
 
+app.get("/tindakan", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM tindakan");
+      res.json({ success: true, tindakan: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /tindakan endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk menyimpan rekam medis
+app.post("/simpan-rekam-medis", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const {
+        tanggal_kunjungan,
+        no_medrek,
+        nama_pasien,
+        alamat_pasien,
+        tanggal_lahir,
+        subjective,
+        td,
+        n,
+        r,
+        s,
+        bb,
+        tb,
+        lk,
+        keterangan,
+        assessment,
+        plan,
+      } = req.body;
+
+      // Simpan data rekam medis ke dalam database
+      const [results] = await connection.query(
+        "INSERT INTO rekam_medis (tanggal_kunjungan, no_medrek, nama_pasien, alamat_pasien, tanggal_lahir, subjective, td, n, r, s, bb, tb, lk, keterangan, assessment, plan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
+        [
+          tanggal_kunjungan,
+          no_medrek,
+          nama_pasien,
+          alamat_pasien,
+          tanggal_lahir,
+          subjective,
+          td,
+          n,
+          r,
+          s,
+          bb,
+          tb,
+          lk,
+          keterangan,
+          assessment,
+          plan,
+        ]
+      );
+
+      const idRekamMedis = results.insertId;
+
+      res.json({ success: true, id: idRekamMedis });
+    } catch (queryError) {
+      console.error(
+        "Error executing query simpan-rekam-medis:",
+        queryError.message
+      );
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /simpan-rekam-medis endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+app.post("/simpan-tindakan-pasien", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const { id_rekam_medis, id_tindakan, harga, jumlah } = req.body;
+
+      // Simpan data tindakan pasien ke dalam database
+      const [results] = await connection.query(
+        "INSERT INTO tindakan_pasien (id_rekam_medis, id_tindakan, harga, jumlah) VALUES (?, ?, ?, ?)",
+        [id_rekam_medis, id_tindakan, harga, jumlah]
+      );
+
+      const idTindakanPasien = results.insertId;
+
+      res.json({ success: true, id: idTindakanPasien });
+    } catch (queryError) {
+      console.error(
+        "Error executing query simpan-tindakan-pasien:",
+        queryError.message
+      );
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /simpan-tindakan-pasien endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
   console.log("Server is running on port ");
