@@ -1145,6 +1145,167 @@ app.post("/simpan-tindakan-pasien", async (req, res) => {
   }
 });
 
+// Endpoint to fetch all data from rekam_medis table
+app.get("/rekam_medis", async (req, res) => {
+  try {
+    const query = "SELECT * FROM rekam_medis";
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query);
+      res.json({ success: true, rekam_medis: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /rekam_medis endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to fetch tindakan_pasien data with related rekam_medis and tindakan data
+app.get("/tindakan_pasien", async (req, res) => {
+  try {
+    const query = `
+  SELECT tp.id, tp.id_rekam_medis, tp.id_tindakan, tp.harga, tp.jumlah,
+         rm.id as rm_id, rm.no_medrek,
+         t.nama as tindakan_nama, t.harga as tindakan_harga
+  FROM tindakan_pasien tp
+  JOIN rekam_medis rm ON tp.id_rekam_medis = rm.id
+  JOIN tindakan t ON tp.id_tindakan = t.id
+`;
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query);
+      res.json({ success: true, tindakan_pasien: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /tindakan_pasien endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk mendapatkan data admin
+app.get("/dataadmin", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM admin");
+
+      // Tidak perlu manipulasi format tanggal jika tidak diperlukan
+      res.json({ success: true, admin: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /dataadmin endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk mendapatkan data dokter
+app.get("/datadokter", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM dokter");
+
+      // Tidak perlu manipulasi format tanggal jika tidak diperlukan
+      res.json({ success: true, dokter: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /datadokter endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk mendapatkan data pemilik
+app.get("/datapemilik", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM pemilik");
+
+      // Tidak perlu manipulasi format tanggal jika tidak diperlukan
+      res.json({ success: true, pemilik: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /datapemilik endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk mendapatkan data apoteker
+app.get("/dataapoteker", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM apoteker");
+
+      // Tidak perlu manipulasi format tanggal jika tidak diperlukan
+      res.json({ success: true, apoteker: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /dataapoteker endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk mendapatkan data perawat
+app.get("/dataperawat", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM perawat");
+
+      // Tidak perlu manipulasi format tanggal jika tidak diperlukan
+      res.json({ success: true, perawat: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /dataperawat endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
   console.log("Server is running on port ");
