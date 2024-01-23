@@ -1306,6 +1306,97 @@ app.get("/dataperawat", async (req, res) => {
   }
 });
 
+// Endpoint untuk pendaftaran USG
+app.post("/pendaftaran-usg", async (req, res) => {
+  const { nama, tanggalUsg, tanggalLahir, alamat } = req.body;
+
+  // Validasi input
+  if (!nama || !tanggalUsg || !tanggalLahir || !alamat) {
+    return res.status(400).json({
+      success: false,
+      message: "Nama, tanggal USG, tanggal lahir, dan alamat diperlukan.",
+    });
+  }
+
+  try {
+    // Lakukan proses penyimpanan data pendaftaran USG ke dalam database
+    const [result] = await pool.query(
+      "INSERT INTO pasien_usg (nama_pasien, tanggal_usg, tanggal_lahir, alamat, status) VALUES (?, ?, ?, ?, 'belum')",
+      [nama, tanggalUsg, tanggalLahir, alamat]
+    );
+
+    // Ambil data pendaftaran USG yang baru saja ditambahkan
+    const [newPendaftaran] = await pool.query(
+      "SELECT * FROM pasien_usg WHERE id = ?",
+      [result.insertId]
+    );
+
+    res.status(201).json({ success: true, pendaftaran: newPendaftaran[0] });
+  } catch (error) {
+    console.error("Error adding USG registration:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Endpoint untuk mendapatkan data pasien USG
+app.get("/datapasienusg", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query("SELECT * FROM pasien_usg");
+
+      // Manipulasi format tanggal sebelum mengirimkannya ke frontend
+      const pasienUsgFormatted = results.map((pasien) => ({
+        ...pasien,
+        tanggal_lahir: formatDate(pasien.tanggal_lahir),
+        // Tambahkan pemformatan lain sesuai kebutuhan
+      }));
+
+      res.json({ success: true, pasien_usg: pasienUsgFormatted });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /datapasienusg endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to get filtered pasien USG data for today with status 'belum'
+app.get("/datapasienusg/filter", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0]; // Get today's date in 'YYYY-MM-DD' format
+    const filteredData = await pool.query(
+      "SELECT * FROM pasien_usg WHERE DATE(tanggal_usg) = ? AND status = 'belum'",
+      [today]
+    );
+
+    res.json({ success: true, pasien_usg: filteredData });
+  } catch (error) {
+    console.error("Error fetching filtered pasien USG data:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to update pasien USG status to 'selesai'
+app.put("/datapasienusg/updatestatus/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query("UPDATE pasien_usg SET status = 'selesai' WHERE id = ?", [
+      id,
+    ]);
+    res.json({ success: true, message: "Status updated successfully" });
+  } catch (error) {
+    console.error("Error updating pasien USG status:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
   console.log("Server is running on port ");
