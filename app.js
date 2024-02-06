@@ -950,6 +950,35 @@ app.get("/datatransaksi", async (req, res) => {
   }
 });
 
+app.get("/detailtransaksi/:id", async (req, res) => {
+  const transaksiId = req.params.id;
+
+  try {
+    const connection = await pool.getConnection();
+    try {
+      const [result] = await connection.query(
+        `
+        SELECT dt.id, dt.transaksi_id, dt.obat_id, dt.quantity, dt.harga, o.nama_obat
+        FROM detail_transaksi dt
+        JOIN obat o ON dt.obat_id = o.id
+        WHERE dt.transaksi_id = ?
+      `,
+        [transaksiId]
+      );
+
+      res.json({ success: true, detailTransaksi: result });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /detailtransaksi endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
 // Fungsi untuk memformat tanggal ke dalam format yang diinginkan
 function formatDate(rawDate) {
   const date = new Date(rawDate);
@@ -1055,11 +1084,8 @@ app.post("/simpan-rekam-medis", async (req, res) => {
 
     try {
       const {
+        id_pasien,
         tanggal_kunjungan,
-        no_medrek,
-        nama_pasien,
-        alamat_pasien,
-        tanggal_lahir,
         subjective,
         td,
         n,
@@ -1075,13 +1101,10 @@ app.post("/simpan-rekam-medis", async (req, res) => {
 
       // Simpan data rekam medis ke dalam database
       const [results] = await connection.query(
-        "INSERT INTO rekam_medis (tanggal_kunjungan, no_medrek, nama_pasien, alamat_pasien, tanggal_lahir, subjective, td, n, r, s, bb, tb, lk, keterangan, assessment, plan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
+        "INSERT INTO rm_pasien (id_pasien, tanggal_kunjungan, subjective, td, n, r, s, bb, tb, lk, keterangan, assessment, plan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)",
         [
+          id_pasien,
           tanggal_kunjungan,
-          no_medrek,
-          nama_pasien,
-          alamat_pasien,
-          tanggal_lahir,
           subjective,
           td,
           n,
@@ -1119,12 +1142,12 @@ app.post("/simpan-tindakan-pasien", async (req, res) => {
     const connection = await pool.getConnection();
 
     try {
-      const { id_rekam_medis, id_tindakan, harga, jumlah } = req.body;
+      const { id_rm_pasien, id_tindakan, harga, jumlah } = req.body;
 
       // Simpan data tindakan pasien ke dalam database
       const [results] = await connection.query(
-        "INSERT INTO tindakan_pasien (id_rekam_medis, id_tindakan, harga, jumlah) VALUES (?, ?, ?, ?)",
-        [id_rekam_medis, id_tindakan, harga, jumlah]
+        "INSERT INTO tnd_pasien (id_rm_pasien, id_tindakan, harga, jumlah) VALUES (?, ?, ?, ?)",
+        [id_rm_pasien, id_tindakan, harga, jumlah]
       );
 
       const idTindakanPasien = results.insertId;
@@ -1146,9 +1169,9 @@ app.post("/simpan-tindakan-pasien", async (req, res) => {
 });
 
 // Endpoint to fetch all data from rekam_medis table
-app.get("/rekam_medis", async (req, res) => {
+app.get("/rmpasien", async (req, res) => {
   try {
-    const query = "SELECT * FROM rekam_medis";
+    const query = "SELECT * FROM rm_pasien";
 
     const connection = await pool.getConnection();
 
@@ -1163,6 +1186,29 @@ app.get("/rekam_medis", async (req, res) => {
     }
   } catch (error) {
     console.error("Error in /rekam_medis endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to fetch jumlah pasien per bulan from rm_pasien table
+app.get("/jumlahpasienperbulan", async (req, res) => {
+  try {
+    const query =
+      "SELECT MONTH(tanggal_kunjungan) as bulan, COUNT(id) as jumlah_pasien FROM rm_pasien GROUP BY bulan";
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query);
+      res.json({ success: true, jumlah_pasien_per_bulan: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /jumlahpasienperbulan endpoint:", error.message);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
@@ -1306,34 +1352,34 @@ app.get("/dataperawat", async (req, res) => {
   }
 });
 
-// Endpoint untuk pendaftaran USG
-app.post("/pendaftaran-usg", async (req, res) => {
-  const { nama, tanggalUsg, tanggalLahir, alamat } = req.body;
+// Endpoint untuk pendaftaran pasien
+app.post("/pendaftaran-pasien", async (req, res) => {
+  const { nomor_pendaftaran, nama, keluhan } = req.body;
 
   // Validasi input
-  if (!nama || !tanggalUsg || !tanggalLahir || !alamat) {
+  if (!nomor_pendaftaran || !nama || !keluhan) {
     return res.status(400).json({
       success: false,
-      message: "Nama, tanggal USG, tanggal lahir, dan alamat diperlukan.",
+      message: "Nomor pendaftaran, nama , dan keluhan diperlukan.",
     });
   }
 
   try {
-    // Lakukan proses penyimpanan data pendaftaran USG ke dalam database
+    // Lakukan proses penyimpanan data pendaftaran pasien ke dalam database
     const [result] = await pool.query(
-      "INSERT INTO pasien_usg (nama_pasien, tanggal_usg, tanggal_lahir, alamat, status) VALUES (?, ?, ?, ?, 'belum')",
-      [nama, tanggalUsg, tanggalLahir, alamat]
+      "INSERT INTO pendaftaran (nomor_pendaftaran, nama, keluhan, status) VALUES (?, ?, ?, 'belum')",
+      [nomor_pendaftaran, nama, keluhan]
     );
 
-    // Ambil data pendaftaran USG yang baru saja ditambahkan
+    // Ambil data pendaftaran pasien yang baru saja ditambahkan
     const [newPendaftaran] = await pool.query(
-      "SELECT * FROM pasien_usg WHERE id = ?",
+      "SELECT * FROM pendaftaran WHERE id = ?",
       [result.insertId]
     );
 
     res.status(201).json({ success: true, pendaftaran: newPendaftaran[0] });
   } catch (error) {
-    console.error("Error adding USG registration:", error.message);
+    console.error("Error adding patient registration:", error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1393,6 +1439,134 @@ app.put("/datapasienusg/updatestatus/:id", async (req, res) => {
     res.json({ success: true, message: "Status updated successfully" });
   } catch (error) {
     console.error("Error updating pasien USG status:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Endpoint untuk menyimpan data pasien
+app.post("/tambahpasien", async (req, res) => {
+  const { noMedrek, nama, tanggalLahir, alamat } = req.body;
+
+  if (!noMedrek || !nama || !tanggalLahir || !alamat) {
+    return res.status(400).json({
+      success: false,
+      message: "NoMedrek, Nama, Tanggal Lahir, and Alamat are required.",
+    });
+  }
+
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO pasien (no_medrek, nama, tanggal_lahir, alamat) VALUES (?, ?, ?, ?)",
+      [noMedrek, nama, tanggalLahir, alamat]
+    );
+
+    const [newPasien] = await pool.query("SELECT * FROM pasien WHERE id = ?", [
+      result.insertId,
+    ]);
+
+    res.status(201).json({ success: true, pasien: newPasien[0] });
+  } catch (error) {
+    console.error("Error adding pasien:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/getallpasien", async (req, res) => {
+  try {
+    const [pasienList] = await pool.query("SELECT * FROM pasien");
+
+    res.status(200).json({ success: true, pasienList });
+  } catch (error) {
+    console.error("Error retrieving pasien data:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/getalltransaksi", async (req, res) => {
+  try {
+    const [transaksiList] = await pool.query("SELECT * FROM transaksi");
+
+    res.status(200).json({ success: true, transaksiList });
+  } catch (error) {
+    console.error("Error retrieving transaksi data:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/transaksi/:transaksiId", async (req, res) => {
+  try {
+    const transaksiId = req.params.transaksiId;
+    const [transaksi] = await pool.query(
+      "SELECT * FROM transaksi WHERE id = ?",
+      [transaksiId]
+    );
+
+    if (transaksi.length > 0) {
+      res.status(200).json({ success: true, transaksi: transaksi[0] });
+    } else {
+      res.status(404).json({ success: false, message: "Transaksi not found" });
+    }
+  } catch (error) {
+    console.error("Error retrieving transaksi data:", error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/rmpasien/:recordId", async (req, res) => {
+  try {
+    const { recordId } = req.params;
+
+    // Replace the query with your actual SQL query to fetch the specific record by ID
+    const query = "SELECT * FROM rm_pasien WHERE id = ?";
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query, [recordId]);
+
+      if (results.length === 0) {
+        // If no record is found, return a 404 status
+        res.status(404).json({ success: false, error: "Record not found" });
+      } else {
+        // If a record is found, return the record
+        res.json({ success: true, record: results[0] });
+      }
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /rmpasien/:recordId endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+// Assuming you use Express.js
+app.get("/tndpasien/:id_rm_pasien", async (req, res) => {
+  try {
+    const { id_rm_pasien } = req.params;
+    const query = `
+      SELECT tnd.id, tnd.id_rm_pasien, tnd.id_tindakan, tnd.harga, 
+             tind.nama AS nama_tindakan
+      FROM tnd_pasien tnd
+      JOIN tindakan tind ON tnd.id_tindakan = tind.id
+      WHERE tnd.id_rm_pasien = ?`;
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query, [id_rm_pasien]);
+      res.json({ success: true, tindakan: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /tndpasien endpoint:", error.message);
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
