@@ -1190,6 +1190,29 @@ app.get("/rmpasien", async (req, res) => {
   }
 });
 
+app.get("/rmpasien_tgl", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0]; // Tanggal hari ini dalam format YYYY-MM-DD
+    const query = `SELECT * FROM rm_pasien WHERE tanggal_kunjungan = '${today}'`;
+
+    const connection = await pool.getConnection();
+
+    try {
+      const [results] = await connection.query(query);
+      res.json({ success: true, rekam_medis: results });
+    } catch (queryError) {
+      console.error("Error executing query:", queryError.message);
+      res.status(500).json({ success: false, error: "Internal Server Error" });
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Error in /rekam_medis endpoint:", error.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+
 // Endpoint to fetch jumlah pasien per bulan from rm_pasien table
 app.get("/jumlahpasienperbulan", async (req, res) => {
   try {
