@@ -1212,7 +1212,6 @@ app.get("/rmpasien_tgl", async (req, res) => {
   }
 });
 
-
 // Endpoint to fetch jumlah pasien per bulan from rm_pasien table
 app.get("/jumlahpasienperbulan", async (req, res) => {
   try {
@@ -1404,65 +1403,6 @@ app.post("/pendaftaran-pasien", async (req, res) => {
   } catch (error) {
     console.error("Error adding patient registration:", error.message);
     res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Endpoint untuk mendapatkan data pasien USG
-app.get("/datapasienusg", async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-
-    try {
-      const [results] = await connection.query("SELECT * FROM pasien_usg");
-
-      // Manipulasi format tanggal sebelum mengirimkannya ke frontend
-      const pasienUsgFormatted = results.map((pasien) => ({
-        ...pasien,
-        tanggal_lahir: formatDate(pasien.tanggal_lahir),
-        // Tambahkan pemformatan lain sesuai kebutuhan
-      }));
-
-      res.json({ success: true, pasien_usg: pasienUsgFormatted });
-    } catch (queryError) {
-      console.error("Error executing query:", queryError.message);
-      res.status(500).json({ success: false, error: "Internal Server Error" });
-    } finally {
-      connection.release();
-    }
-  } catch (error) {
-    console.error("Error in /datapasienusg endpoint:", error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
-  }
-});
-
-// Endpoint to get filtered pasien USG data for today with status 'belum'
-app.get("/datapasienusg/filter", async (req, res) => {
-  try {
-    const today = new Date().toISOString().split("T")[0]; // Get today's date in 'YYYY-MM-DD' format
-    const filteredData = await pool.query(
-      "SELECT * FROM pasien_usg WHERE DATE(tanggal_usg) = ? AND status = 'belum'",
-      [today]
-    );
-
-    res.json({ success: true, pasien_usg: filteredData });
-  } catch (error) {
-    console.error("Error fetching filtered pasien USG data:", error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
-  }
-});
-
-// Endpoint to update pasien USG status to 'selesai'
-app.put("/datapasienusg/updatestatus/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await pool.query("UPDATE pasien_usg SET status = 'selesai' WHERE id = ?", [
-      id,
-    ]);
-    res.json({ success: true, message: "Status updated successfully" });
-  } catch (error) {
-    console.error("Error updating pasien USG status:", error.message);
-    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
