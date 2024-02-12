@@ -1534,6 +1534,133 @@ app.get("/tndpasien/:id_rm_pasien", async (req, res) => {
   }
 });
 
+// Endpoint untuk menambahkan jadwal praktik dokter
+app.post("/jadwal-praktik", (req, res) => {
+  const { nama_dokter, hari, jam_mulai, jam_selesai } = req.body;
+
+  const query = `INSERT INTO jadwal_praktik (nama_dokter, hari, jam_mulai, jam_selesai) VALUES (?, ?, ?, ?)`;
+  pool.query(
+    query,
+    [nama_dokter, hari, jam_mulai, jam_selesai],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        res.status(500).json({
+          message: "Terjadi kesalahan saat menambahkan jadwal praktik dokter",
+        });
+      } else {
+        res.status(201).json({
+          message: "Jadwal praktik dokter berhasil ditambahkan",
+          id: results.insertId,
+        });
+      }
+    }
+  );
+});
+// Endpoint untuk mengambil seluruh data jadwal_dokter
+app.get("/jadwal-praktik", async (req, res) => {
+  try {
+    const query = `SELECT * FROM jadwal_praktik`;
+    const [rows, fields] = await pool.query(query);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error fetching jadwal praktik dokter:", error);
+    res.status(500).json({
+      message: "Terjadi kesalahan saat mengambil data jadwal praktik dokter",
+    });
+  }
+});
+
+app.put("/jadwal-praktik/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nama_dokter, hari, jam_mulai, jam_selesai } = req.body;
+
+  try {
+    const connection = await createConnection();
+    const query = `
+      UPDATE jadwal_praktik 
+      SET nama_dokter = ?, hari = ?, jam_mulai = ?, jam_selesai = ?
+      WHERE id = ?`;
+
+    const [results] = await connection.query(query, [
+      nama_dokter,
+      hari,
+      jam_mulai,
+      jam_selesai,
+      id,
+    ]);
+
+    res.status(200).json({
+      message: "Jadwal praktik dokter berhasil diupdate",
+    });
+
+    connection.close(); // Tutup koneksi setelah selesai
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Terjadi kesalahan saat mengupdate jadwal praktik dokter",
+    });
+  }
+});
+
+// Endpoint untuk menghapus jadwal praktik dokter berdasarkan ID
+app.delete("/jadwal-praktik/:id", async (req, res) => {
+  const jadwalId = req.params.id;
+
+  try {
+    const [results] = await pool.query(
+      "DELETE FROM jadwal_praktik WHERE id = ?",
+      [jadwalId]
+    );
+    if (results.affectedRows === 0) {
+      res.status(404).json({
+        message: "Jadwal praktik dokter tidak ditemukan",
+      });
+    } else {
+      res.status(200).json({
+        message: "Jadwal praktik dokter berhasil dihapus",
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting jadwal praktik dokter:", error);
+    res.status(500).json({
+      message: "Terjadi kesalahan saat menghapus jadwal praktik dokter",
+    });
+  }
+});
+
+// Endpoint untuk mengambil seluruh data ruangan
+app.get("/api/ruangan", async (req, res) => {
+  try {
+    const connection = await createConnection();
+    const [rows] = await connection.execute("SELECT * FROM ruangan");
+    connection.end();
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching data from database:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Endpoint untuk memperbarui status ruangan
+app.put("/api/ruangan/:id", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const connection = await pool.getConnection();
+    await connection.query("UPDATE ruangan SET status = ? WHERE id = ?", [
+      status,
+      id,
+    ]);
+    connection.release();
+    res.json({ message: "Ruangan status updated successfully" });
+  } catch (error) {
+    console.error("Error updating ruangan status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => {
   console.log("Server is running on port ");
