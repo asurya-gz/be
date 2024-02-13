@@ -1511,11 +1511,12 @@ app.get("/tndpasien/:id_rm_pasien", async (req, res) => {
   try {
     const { id_rm_pasien } = req.params;
     const query = `
-      SELECT tnd.id, tnd.id_rm_pasien, tnd.id_tindakan, tnd.harga, 
-             tind.nama AS nama_tindakan
-      FROM tnd_pasien tnd
-      JOIN tindakan tind ON tnd.id_tindakan = tind.id
-      WHERE tnd.id_rm_pasien = ?`;
+    SELECT tnd.id, tnd.id_rm_pasien, tnd.id_tindakan, tnd.harga, tnd.jumlah,
+    tind.nama AS nama_tindakan
+FROM tnd_pasien tnd
+JOIN tindakan tind ON tnd.id_tindakan = tind.id
+WHERE tnd.id_rm_pasien = ?
+`;
 
     const connection = await pool.getConnection();
 
@@ -1657,6 +1658,58 @@ app.put("/api/ruangan/:id", async (req, res) => {
     res.json({ message: "Ruangan status updated successfully" });
   } catch (error) {
     console.error("Error updating ruangan status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Endpoint untuk menghapus ruangan
+app.delete("/api/ruangan/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const connection = await pool.getConnection();
+    await connection.query("DELETE FROM ruangan WHERE id = ?", [id]);
+    connection.release();
+    res.json({ message: "Ruangan deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ruangan:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Endpoint untuk menyimpan perubahan ruangan
+app.put("/api/manageruangan/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nama_ruangan, status } = req.body;
+
+  try {
+    const connection = await pool.getConnection();
+    await connection.query(
+      "UPDATE ruangan SET nama_ruangan = ?, status = ? WHERE id = ?",
+      [nama_ruangan, status, id]
+    );
+    connection.release();
+    res.json({ message: "Ruangan updated successfully" });
+  } catch (error) {
+    console.error("Error updating ruangan:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Endpoint untuk menambahkan ruangan baru
+app.post("/api/tambahruangan", async (req, res) => {
+  const { nama_ruangan, status } = req.body;
+
+  try {
+    const connection = await pool.getConnection();
+    await connection.query(
+      "INSERT INTO ruangan (nama_ruangan, status) VALUES (?, ?)",
+      [nama_ruangan, status]
+    );
+    connection.release();
+    res.json({ message: "Ruangan added successfully" });
+  } catch (error) {
+    console.error("Error adding ruangan:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
